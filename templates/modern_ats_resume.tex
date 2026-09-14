@@ -1,0 +1,143 @@
+%-------------------------
+% Modern ATS-Friendly LaTeX Resume Template
+% Single-Column, Clean Typography, Zero Parse Clutter
+%-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tabularx}
+\usepackage[margin=0.55in]{geometry}
+
+\pagestyle{empty}
+
+% URL style
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-6pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, label=\textbullet]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-4pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Huge \scshape Alex Morgan} \\ \vspace{2pt}
+    \small San Francisco, CA $|$ +1 (555) 349-2810 $|$ \href{mailto:alex.morgan@example.com}{\underline{alex.morgan@example.com}} $|$ 
+    \href{https://linkedin.com/in/alexmorgan-dev}{\underline{linkedin.com/in/alexmorgan-dev}} $|$
+    \href{https://github.com/alexmorgandev}{\underline{github.com/alexmorgandev}}
+\end{center}
+
+%-----------SUMMARY-----------
+\section{Summary}
+\small{Senior Backend Engineer with 6+ years specializing in distributed payment infrastructure, high-throughput message streaming, and cloud database optimization. Experienced in building zero-loss ledger services processing 15,000+ tx/sec and migrating critical monoliths to Kafka event streams with 99.99\% availability.}
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Go, Python, TypeScript, Java, SQL} \\
+     \textbf{Distributed Systems \& Messaging}{: Apache Kafka, Redis, RabbitMQ, gRPC, REST, Microservices} \\
+     \textbf{Databases \& Storage}{: PostgreSQL (performance tuning, partitioning), DynamoDB, Elasticsearch} \\
+     \textbf{Cloud \& DevOps}{: AWS (EKS, Lambda, RDS), Docker, Kubernetes, Terraform, CI/CD (GitHub Actions)} \\
+    }}
+\end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Work Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {FinTech Dynamics}{San Francisco, CA}
+      {Senior Backend Engineer}{Mar 2022 -- Present}
+      \resumeItemListStart
+        \resumeItem{Architected high-throughput ledger ingestion service in Go processing 15,000+ financial transactions/sec with zero ledger discrepancies.}
+        \resumeItem{Engineered distributed locking using Redis Redlock and PostgreSQL advisory locks, eliminating concurrent duplicate charges.}
+        \resumeItem{Migrated monolithic payment gateway to event-driven microservices on AWS EKS and Kafka, improving uptime from 99.85\% to 99.99\%.}
+        \resumeItem{Cut monthly AWS RDS expenditures by 32\% (\$4,200/mo) through automated query refactoring and read-replica routing.}
+        \resumeItem{Mentored 5 mid-level engineers in concurrency patterns, distributed debugging, and production incident management.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {CloudScale Systems}{San Francisco, CA}
+      {Backend Software Engineer}{Jun 2019 -- Feb 2022}
+      \resumeItemListStart
+        \resumeItem{Developed real-time telemetry streaming pipeline in Python (FastAPI) and RabbitMQ processing 40M+ events daily.}
+        \resumeItem{Optimized PostgreSQL database (2TB+ dataset) with custom indexing and table partitioning, cutting median latency from 340ms to 45ms.}
+        \resumeItem{Constructed declarative CI/CD release pipelines with Terraform and GitHub Actions, shifting releases from bi-weekly to daily.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {NextGen Solutions}{Davis, CA}
+      {Associate Software Engineer}{Jun 2018 -- May 2019}
+      \resumeItemListStart
+        \resumeItem{Engineered internal CLI tooling in Go to automate local developer environment provisioning, saving 15 engineering hours/onboarding.}
+        \resumeItem{Authored unit and integration test suites in Go and Python, raising service test coverage from 62\% to 88\%.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Technical Projects}
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\textbf{Distributed Key-Value Store (minikv)} $|$ \emph{Go, gRPC, Raft Consensus, Protobuf}}{2024}
+          \resumeItemListStart
+            \resumeItem{Implemented Raft consensus algorithm in Go featuring leader election, log replication, and automated node failover.}
+            \resumeItem{Designed client library with automatic request forwarding to the elected leader and exponential backoff retry policies.}
+          \resumeItemListEnd
+      \resumeProjectHeading
+          {\textbf{High-Throughput Event Ingester} $|$ \emph{Go, Redis Streams, Docker, Prometheus}}{2023}
+          \resumeItemListStart
+            \resumeItem{Built lightweight webhook ingester handling sustained 50k requests/min with sub-15ms overhead on a single AWS instance.}
+          \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {University of California, Davis}{Davis, CA}
+      {Bachelor of Science in Computer Science}{2014 -- 2018}
+  \resumeSubHeadingListEnd
+
+\end{document}
