@@ -1,0 +1,43 @@
+%-------------------------
+% Cover Letter Template (Block Letter, ATS-Friendly)
+% Single-Column, No Section Rules, Real Paragraph Breaks
+%-------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage[hidelinks]{hyperref}
+\usepackage[margin=1in]{geometry}
+
+% Searchable, faithful text extraction
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{mathptmx} % Times body face (core MiKTeX fonts only; small-caps fall back to regular)
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\pagestyle{empty}
+
+% URL style
+\urlstyle{same}
+
+\raggedbottom
+\setlength{\tabcolsep}{0in}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% No hyphenation: keeps every word intact for text extraction.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\tolerance=2000
+\emergencystretch=1em
+
+%-------------------------------------------
+%%%%%%  LETTER STARTS HERE  %%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+{{CONTENT}}
+
+\end{document}

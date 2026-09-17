@@ -1,0 +1,139 @@
+%-------------------------
+% Modern ATS-Friendly LaTeX Resume Template
+% Single-Column, Clean Typography, Zero Parse Clutter
+%-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tabularx}
+\usepackage[margin=0.55in]{geometry}
+
+% Searchable, ATS-faithful text extraction (fixes ligature splits like "F rameworks"
+% and maps glyphs like bullets to proper Unicode codepoints)
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{mathptmx} % Times body face (core MiKTeX fonts only; small-caps fall back to regular)
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\pagestyle{empty}
+
+% URL style
+\urlstyle{same}
+
+\raggedbottom
+\setlength{\tabcolsep}{0in}
+
+% No hyphenation: a hyphen split across lines ("commu-nicative") breaks ATS
+% keyword matching. emergencystretch keeps justified lines from overflowing.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\tolerance=2000
+\emergencystretch=1em
+
+% Sections formatting (unnumbered for ATS cleanliness; bold (not small-caps:
+% Times has no true small-caps and the fallback corrupts text extraction)
+\setcounter{secnumdepth}{0}
+\titleformat{\section}{
+  \vspace{-4pt}\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-2pt}]
+\titlespacing*{\section}{0pt}{8pt}{5pt}
+
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, label=\textbullet]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-4pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+
+\begin{center}
+{\Large \bfseries Darshan Maniar} \\ \vspace{2pt}
+{\small Heilbronn, Germany | drshnmaniar@gmail.com | \href{https://linkedin.com/in/drshnmaniar}{linkedin.com/in/drshnmaniar} | \href{https://github.com/drshnmaniar}{github.com/drshnmaniar}}
+\end{center}
+
+
+\section{Professional Summary}
+{\small Full Stack Software Engineer with 7+ years of enterprise C\# and .NET development, specializing in clean architecture, Dependency Injection, microservices, and CI/CD-driven delivery across large-scale systems. Proven record modernizing 200+ applications into modular, testable architectures and stabilizing mission-critical platforms serving 1M+ users — bringing exactly the engineering rigor and quality mindset that Siemens Smart Buildings demands.}
+
+
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]
+\item\small{\textbf{Languages:} C\#, TypeScript, Python, SQL, JavaScript}
+\item\small{\textbf{Frameworks \& Architecture:} .NET 8, ASP.NET Web API, Angular, AngularJS, Entity Framework, RabbitMQ, Microservices, DI/IoC, Clean Code}
+\item\small{\textbf{DevOps \& Cloud:} Azure DevOps, Git, CI/CD Pipelines, Docker, NuGet, Azure Workbooks, GitHub Actions}
+\item\small{\textbf{Practices:} Unit Testing, Secure-by-Design, Agile/Scrum, PI Planning, Code Reviews, Pair Programming}
+\end{itemize}
+
+
+\section{Work Experience}
+
+\noindent\textbf{Software Engineer III (Full Stack) | Reveation Labs}\\
+{\small\textit{Dec 2022 – Mar 2025 | Remote, India}}\\[-2pt]
+
+\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]
+\item\small{Engineered .NET 8 microservices using Dependency Injection, RabbitMQ, and ASP.NET Web API to restructure member subscription processing pipelines, increasing system reliability and enabling independent service deployments.}
+\item\small{Spearheaded TFS-to-Git migration and implemented automated CI/CD pipelines with code-review gates across 200+ applications, slashing release deployment time from 2-3 hours to about 1 hour.}
+\item\small{Architected a real-time health monitoring platform using React, .NET microservices, and Azure Workbooks across 50+ global systems, reducing mean time to failure detection from 8-10 hours to 10-15 minutes.}
+\item\small{Led PI planning sessions and mentored 4-5 junior developers through pair programming and technical code reviews, establishing consistent Clean Code standards across the team.}
+\end{itemize}
+
+\noindent\textbf{Senior Software Engineer | Tark Technologies LLP}\\
+{\small\textit{Dec 2017 – Dec 2022 | Rajkot, India}}\\[-2pt]
+
+\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]
+\item\small{Modernized a high-traffic, multi-role POS system from AngularJS to Angular with complex SQL stored procedures, sustaining peak loads of 50,000+ concurrent orders without downtime.}
+\item\small{Rebuilt a comprehensive rehabilitation facility ERP from classic ASP to Angular and .NET, streamlining patient enrollment, therapy scheduling, and billing workflows for 300-400 concurrent patients.}
+\item\small{Stabilized a mission-critical subscription platform serving 50,000 vendors and 1M+ international members, reducing support ticket volume by about 33\% through targeted legacy refactoring.}
+\end{itemize}
+
+
+\section{Technical Projects}
+
+\noindent\textbf{Always-Current CV \& Automated PDF Pipeline | \textit{React, GitHub Actions, LaTeX, CI/CD} | 2025–Ongoing}\\
+\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]
+\item\small{Built a single JSON-driven React site and GitHub Actions CI pipeline that compiles LaTeX sources into multilingual PDF CVs on every push, enforcing zero-drift between source data and published output.}
+\end{itemize}
+
+\noindent\textbf{AI Tool Adoption in Academic Research | \textit{Python, Research Design, Descriptive Statistics} | Apr–Jul 2025}\\
+\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]
+\item\small{Designed and executed a 29-day structured survey (36 responses) on AI tool productivity, performing quantitative and thematic analysis; surfaced that 78\% reported gains despite critical reliability gaps.}
+\end{itemize}
+
+
+\section{Education}
+{\small \textbf{M.Sc. Software Engineering \& Management} | Hochschule Heilbronn, Germany | 2025 – Expected early 2027}\\
+{\small \textbf{B.E. Computer Science} | Gujarat Technological University, India | 2013 – 2017 | CGPA 8.24/10.0}
+
+
+\end{document}

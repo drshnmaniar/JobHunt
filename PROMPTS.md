@@ -130,12 +130,20 @@ A modular library of prompts for running each stage of the job application flow 
    ```powershell
    python scripts/compile_latex.py --content resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume_content.md --template templates/modern_ats_resume.tex --output output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume.pdf
    ```
+   The script auto-detects resume vs. cover letter from the H1 (`--doctype auto`); pass `--doctype letter` with `templates/cover_letter.tex` for cover letters (see Option 5).
+2. **Glyph rules (ATS extraction fidelity)**: never use `~` (extracts as `˜` — write "about"/"approx.") or `→` (pdflatex drops it — write "to"). Bullets, ligatures, and dashes are handled by the template's `glyphtounicode` mapping; do not fight it with manual escapes.
 2. Verify the ATS compliance programmatically:
    - Run the ATS text extraction script:
      ```powershell
      python scripts/verify_ats.py output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume.pdf
      ```
    - Confirm the script prints "VERIFICATION PASSED" (checks for selectable text, correct section order, and intact contact info).
+3. Clean up the PDF folder (runs automatically inside `compile_latex.py`, Step 7):
+   - Deletes pdflatex sidecar files (`.aux`, `.log`, `.out`, `.toc`, `.synctex.gz`, `.fls`, `.fdb_latexmk`) next to the output.
+   - Keeps only `.tex` + `.pdf`. To clean manually:
+     ```powershell
+     Get-ChildItem output_pdfs -Include *.aux,*.log,*.out,*.toc,*.synctex.gz,*.fls,*.fdb_latexmk -Recurse | Remove-Item
+     ```
 3. Return a direct link to `output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume.pdf`.
 ```
 
@@ -155,11 +163,18 @@ A modular library of prompts for running each stage of the job application flow 
 
 **Directives**:
 1. Write a compelling, conversational, high-signal 3-paragraph cover letter:
+   - **Subject line (mandatory)**: `**Subject:** Application for [Role] (Job ID [ID])` directly after the contact line.
    - **Paragraph 1 (The Hook)**: Why this company and role? Reference a specific engineering challenge or product aspect mentioned in the JD.
    - **Paragraph 2 (The Proof)**: Highlight 1-2 major past technical achievements with real metrics that prove you can solve their exact problems.
    - **Paragraph 3 (The Alignment & Call to Action)**: Emphasize culture, mutual interest, and invite further conversation.
+   - Close with `Best regards,` + name on separate lines. Never use `~` or `→` (see Option 4 glyph rules).
 2. Save to:
    `resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[position]_cover_letter.md`
+3. Compile the letter PDF with the dedicated letter template (block-letter layout, real paragraph breaks):
+   ```powershell
+   python scripts/compile_latex.py --content resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[position]_cover_letter.md --template templates/cover_letter.tex --output output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_cover_letter.pdf --doctype letter
+   ```
+   Then run the folder cleanup substep (Option 4, step 3). Note: `verify_ats.py` does not apply to letters (no Experience section) — confirm 1 page and selectable text via extraction instead.
 ```
 
 ---

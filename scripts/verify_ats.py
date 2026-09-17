@@ -21,7 +21,9 @@ def verify_ats(pdf_path):
             sys.exit(1)
             
         # 1. Check Selectable Text
-        print("✓ Selectable text confirmed.")
+        # Keep CLI output ASCII-only so verification works with Windows
+        # code pages that cannot encode Unicode check marks.
+        print("[OK] Selectable text confirmed.")
         
         # 2. Check Intact Contact Details (Basic Regex)
         email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
@@ -34,7 +36,7 @@ def verify_ats(pdf_path):
             print("ERROR: Could not extract email address. Formatting may be broken.")
             sys.exit(1)
             
-        print("✓ Contact details extracted successfully.")
+        print("[OK] Contact details extracted successfully.")
         
         # 3. Check Extraction Order (Ensure Experience comes before Education or vice versa, sections exist)
         has_experience = "experience" in text.lower() or "employment" in text.lower()
@@ -44,7 +46,7 @@ def verify_ats(pdf_path):
             print("ERROR: Could not find 'Experience' section.")
             sys.exit(1)
             
-        print("✓ Core sections detected in text flow.")
+        print("[OK] Core sections detected in text flow.")
         
         print("\nVERIFICATION PASSED")
         
