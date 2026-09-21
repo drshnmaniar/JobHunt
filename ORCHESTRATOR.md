@@ -55,6 +55,32 @@ This document defines how to run the automated job application flow.
 
 ---
 
+## Career-Level Positioning Rule
+
+Select the application narrative from the target employment type. Never alter, omit, or shorten factual employment dates or verifiable job titles to manufacture a different seniority level.
+
+### Working-student and student roles
+
+Use a **student-first, experience-backed** narrative:
+
+- Lead with current enrollment, degree timeline, and working-student availability. Do not lead with total years of experience, seniority labels, or leadership scope unless the job explicitly values them.
+- Compress rather than erase prior work: give the most relevant recent role 2-3 targeted bullets and older experience 1-2 targeted bullets, all tied to the job description.
+- Frame prior experience as practical evidence that the candidate can contribute quickly in a part-time support role; avoid language that makes the role sound beneath the candidate.
+- When supported by the candidate profile, state the credible reason for seeking a working-student role, such as building domain experience in Germany while completing the degree. Do not invent a motivation, relocation plan, work authorization, or long-term commitment.
+
+### Full-time software-engineering roles
+
+Use an **experienced, hands-on individual-contributor** narrative:
+
+- Present the full career history and use the candidate's experience as evidence of delivery, reliability, and production judgment.
+- Target roles whose scope matches the work performed, such as Software Engineer, Full-Stack Engineer, Backend Engineer, or mid-level individual-contributor positions. Do not claim entry-level status merely to broaden eligibility.
+- Be flexible on title, scope, and compensation only when the candidate is genuinely willing to accept them; do not understate experience or imply a willingness to leave quickly.
+- Emphasize hands-on delivery over architecture or people-management language unless the job calls for senior technical ownership or leadership.
+
+For every application, check tense and employment dates carefully. A completed role must be described in the past tense in both the resume and cover letter.
+
+---
+
 ## Workspace Structure (Flat & Categorized)
 
 ```

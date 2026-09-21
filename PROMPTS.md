@@ -71,8 +71,9 @@ A modular library of prompts for running each stage of the job application flow 
    - **Direct Hard Skill Matches**: Skills, languages, tools, and scale metrics that match 1-to-1 between candidate and JD.
    - **Skill Gaps & Weaknesses**: Requirements in the JD where the candidate has no direct professional experience.
    - **Transferable Alignment Angles**: For every gap identified, locate adjacent experiences, foundational principles, or personal projects from the candidate profile that prove capability (e.g., Kafka gap answered by RabbitMQ/Redis Streams + Raft consensus).
-2. Compute an estimated **Match Score** (0 - 100%) based on must-haves vs. nice-to-haves.
-3. Output a concise strategic briefing including:
+2. Assess the role's employment type and seniority against the candidate's factual history. Recommend one of: student-first, experienced individual contributor, senior individual contributor, or no-go. Never recommend altering dates, titles, or total experience to fit a level.
+3. Compute an estimated **Match Score** (0 - 100%) based on must-haves vs. nice-to-haves.
+4. Output a concise strategic briefing including:
    - Top 3 career achievements to highlight.
    - Which bullet points to prioritize.
    - For every skill gap identified, you MUST output a 1-sentence bridging strategy using the syntax: `Gap: [Skill] -> Bridge: [Transferable skill from candidate_profile.md]`.
@@ -96,7 +97,11 @@ A modular library of prompts for running each stage of the job application flow 
 1. **Never Hallucinate**: Only use factual career history, metrics, and technologies documented in `candidate_profile.md`.
 2. **Keyword Optimization**: Naturally incorporate top keywords from the JD into the professional summary and achievement bullets.
 3. **XYZ Impact Phrasing**: Structure every bullet point using Google's XYZ formula: *Accomplished [X] as measured by [Y] by doing [Z]*.
-4. **Strict Single-Page Budget**:
+4. **Career-Level Positioning**:
+   - For working-student roles, lead with current enrollment and availability rather than total years of experience or seniority. Preserve accurate titles and dates, but compress older and less-relevant roles instead of hiding them. When the profile supports it, explain the deliberate reason for seeking part-time student work.
+   - For full-time engineering roles, keep the complete factual history and position the candidate as an experienced, hands-on individual contributor. Use experience to prove delivery, but avoid leadership or architecture framing unless the JD requires it. Do not label the candidate entry-level or reduce dates or titles to fit a lower band.
+   - Describe completed roles in past tense. Do not invent motivation, work authorization, relocation plans, or long-term commitments.
+5. **Strict Single-Page Budget**:
    - Professional Summary: 2-3 sentences focused on role pain points.
    - Technical Skills: 4 organized categories.
    - Work Experience: Top 2-3 most relevant roles with 3-5 high-impact bullets each.

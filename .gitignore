@@ -8,3 +8,8 @@ __pycache__/
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+.env
+tmp/
+output_pdfs/
+resume_contents/
+
