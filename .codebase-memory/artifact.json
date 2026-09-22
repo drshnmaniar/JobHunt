@@ -1,0 +1,12 @@
+{
+    "schema_version": 2,
+    "commit": "d881439c6f15fee3b138f1adecab3151ddefea5a",
+    "indexed_at": "2026-09-22T11:03:16Z",
+    "project": "JobHunt-rubber-duck-review",
+    "nodes": 130,
+    "edges": 205,
+    "original_size": 2031616,
+    "compressed_size": 141711,
+    "compression_level": 9,
+    "reconcile_basis": "git-clean-head"
+}
