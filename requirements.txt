@@ -1,1 +1,2 @@
 ﻿typesafe-sdk==0.7.1
+pypdf==6.1.1

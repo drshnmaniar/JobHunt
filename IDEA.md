@@ -1,6 +1,8 @@
 # Job Application Flow & End-to-End Tracking System
 
-A centralized, automated workflow system for managing the entire job search lifecycle: from capturing job descriptions (JDs) and tailoring ATS-optimized resume PDFs, to tracking application stages with an actionable checklist and status board.
+Design notes. The executable runbook is [PROMPTS.md](PROMPTS.md). Status values, paths, and the approval gate are defined in [ORCHESTRATOR.md](ORCHESTRATOR.md). If this file disagrees with those two, those two win.
+
+A local, agent-run workflow: capture a pasted job description, tailor an ATS resume from `candidate_profile.md` without inventing facts, compile one PDF, and track the packet in `APPLICATIONS_TRACKER.md`. Nothing is `READY_TO_APPLY` until the user approves that APP-ID.
 
 ---
 
@@ -43,62 +45,27 @@ A centralized, automated workflow system for managing the entire job search life
 
 Each job application moves through distinct stages with automated status updates and action checklists:
 
-### Stage 1: Triage & Ingestion (Eligibility First)
-- **Stage**: `Triaging`
-- **Actions**:
-  - Save raw Job Description snapshot (so it's not lost if taken down).
-  - Extract basic metadata (Title, Company, Job URL).
-  - **Triage Check**: Run eligibility matrix to confirm candidate meets hard requirements (Location, Work Authorization, Seniority, Salary floor).
-- **Checklist**:
-  - [ ] Confirm location / remote policy alignment.
-  - [ ] Confirm seniority fit.
-  - [ ] *If mismatch found*: Mark as `REJECTED_AT_TRIAGE` and halt pipeline.
+Statuses are a single column. See ORCHESTRATOR.md. There is no separate Pipeline Stage / Activity Status pair.
 
-### Stage 2: Keyword Analysis & Strategy
-- **Stage**: `Applying` (Status: Action Required)
-- **Actions**:
-  - Extract hard skills, soft skills, domain keywords, and role level.
-  - Compute match score against candidate's Master Profile.
-- **Checklist**:
-  - [ ] Identify key gap areas or required focus points.
-  - [ ] Highlight must-have keywords for ATS parsing.
+| Status | When |
+| :--- | :--- |
+| `TRIAGE` | JD snapshot saved. Eligibility not decided. |
+| `REJECTED_AT_TRIAGE` | Hard mismatch. Stop. |
+| `DRAFT` | Tailoring. Not sendable. |
+| `IN_REVIEW` | PDF compiled and `verify_ats.py` printed `VERIFICATION PASSED`. Waiting for the user. |
+| `READY_TO_APPLY` | User explicitly approved this APP-ID. |
+| `APPLIED` | Submitted. Date recorded. |
+| `SCREENING` / `INTERVIEWING` / `OFFER` / `ACCEPTED` / `REJECTED` | After submission. |
 
-### Stage 3: Traceable Tailoring & ATS Verification
-- **Stage**: `Applying` (Status: Generating Content)
-- **Actions**:
-  - Select and re-order relevant work achievements, explicitly mapping each to an `[ACH-ID]` from the Master Profile to prevent hallucination.
-  - Generate clean PDF with an immutable Application ID (e.g., `APP-042_TechCorp_Senior_Full_Stack_Resume.pdf`).
-  - Run automated ATS verification script to confirm text extraction, order, and contact details.
-- **Checklist**:
-  - [ ] Verify PDF generation and page count (1 page max).
-  - [ ] Run `verify_ats.py` to prove machine-readability.
-
-### Stage 4: Submission & Record
-- **Stage**: `Applying` (Status: Submitted)
-- **Actions**:
-  - Record submission timestamp and method.
-  - Archive the exact version of the resume submitted securely.
-- **Checklist**:
-  - [ ] Direct application submitted on official portal.
-  - [ ] Connect with 1-2 team members / recruiters on LinkedIn.
-
-### Stage 5: Active Pipeline (Decoupled State)
-- **Pipeline Stage**: 
-  - `Screening` -> `Interviewing` -> `Offer` -> `Accepted` / `Rejected`
-- **Activity Status**:
-  - `Action Required` (e.g., Need to send a thank you note, schedule a call).
-  - `Waiting on Employer` (e.g., Followed up, waiting for their reply).
-  - `Blocked` (e.g., Waiting on a referral before applying).
+Hard eligibility (location, work authorization, seniority) is a human check against `candidate_profile.md`. `scripts/assess_fit.py` is advisory and must not be reported as a match percentage or used as the halt condition.
 
 ---
 
 ## 3. Core System Modules
 
-### A. Job Ingestion & JD Parser
-- Input: Web URL (via scraping) or direct markdown/text paste.
-- Output: Structured JSON + Triage Matrix:
-  - Title, Company, Location, Compensation, Seniority.
-  - **Go/No-Go Triage Decision** based on hard filters.
+### A. Job Ingestion
+- Input: pasted JD text, plus company and role. No scraping in v1.
+- Output: one markdown snapshot under `job_descriptions/` and one tracker row. Not JSON.
 
 ### B. Master Profile & Traceability Engine
 - **Master Profile Repository**: A unified Markdown file storing:
@@ -110,17 +77,11 @@ Each job application moves through distinct stages with automated status updates
 
 ### C. PDF Generation & ATS Verification
 - Modern, clean PDF renderer (via programmatic Python injection + pdflatex).
-- **Verifiable ATS Checks** (Replacing "Guarantees"):
-  - **Selectable Text**: Script extracts plain text to ensure no rasterized/corrupted fonts.
-  - **Extraction Order**: Confirms sections read top-to-bottom correctly.
-  - **Intact Contact Details**: Script regex-checks the extracted text for phone number and email to ensure they survived compilation.
+- **ATS check** (`scripts/verify_ats.py`): exactly one page, selectable text, email matches `candidate_profile.md`, and the words summary, experience, and education are present. A missing `pypdf` install is a failure, not a pass. Section order is not enforced: a student-first resume may put experience before skills.
 
-### D. Application Tracking Board & Checklist System
-- **Decoupled Views**:
-  - View by `Pipeline Stage` (Screening, Interviewing).
-  - View by `Activity Status` (Action Required vs. Waiting on Employer).
-- **Immutable Document Locker**:
-  - Files use `APP-[ID]_...` prefix so regenerations or re-applications don't overwrite history.
+### D. Application Tracking
+- One board: `APPLICATIONS_TRACKER.md`. One status column. Checklists are section 3 of that file, not separate checklist files.
+- Files use `yyyy_mm_dd_APP-[ID]_...` so a later application does not overwrite an earlier one.
 
 ---
 
@@ -132,7 +93,9 @@ Working with AI agents makes **pure Markdown** (or **Markdown with YAML frontmat
 - **Built-in Checklist support**: Markdown native task lists (`- [ ]`, `- [x]`) can be read, checked off, and updated directly by you or the agent.
 - **Easy version control**: Clean git diffs for every job application and resume iteration.
 
-### 1. Job Application File (`applications/2026-09-techcorp-sr-engineer.md`)
+The sample below is an illustration of the markdown shape, not a second storage layout. Live packets are flat files plus one tracker row. Do not create `applications/`.
+
+### 1. Illustrative application note (not the live path)
 ```markdown
 ---
 id: app_2026_001
@@ -228,7 +191,7 @@ Senior Full Stack Engineer with 7+ years of experience building high-scale distr
 ### File Hierarchy & Naming Convention (Flat & Categorized)
 
 ```
-JobApplicationsSeptemberFlow/
+JobHuntSeptemberFlow/
 ├── candidate_profile.md                      # Master source of truth (all skills, history, projects)
 ├── APPLICATIONS_TRACKER.md                   # Global tracking sheet for all applications & statuses
 ├── ORCHESTRATOR.md                           # Orchestrator guide & playbook
@@ -250,9 +213,9 @@ JobApplicationsSeptemberFlow/
 
 ---
 
-## 6. Master Orchestrator Prompt (End-to-End Workflow)
+## 6. Master Orchestrator Prompt (historical)
 
-The **Master Orchestrator Prompt** coordinates the entire sequence autonomously. When you supply a new Job Description, the agent executes each phase systematically:
+Superseded by [PROMPTS.md](PROMPTS.md) Option 7. Kept so older notes remain readable. Do not execute this block if it conflicts with PROMPTS.md. In particular: do not set `READY_TO_APPLY` before approval, and do not write `applications/`.
 
 ```markdown
 # MASTER ORCHESTRATOR PROMPT: Job Application Tailoring & Tracking
@@ -343,19 +306,13 @@ Job Description: [Pasted JD text or file path]
 2. Proper escaping of LaTeX special characters (`&`, `%`, `$`, `_`, `#`, `^`, `~`).
 3. Strict single-page geometry (`geometry` package with 0.5 - 0.75 in margins).
 4. Standard ATS section headings: `\section{Summary}`, `\section{Technical Skills}`, `\section{Work Experience}`, `\section{Projects}`, `\section{Education}`.
-5. Save as `applications/[company]_[position]/[company]_[position]_resume.tex`.
+5. Save as `output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[role]_resume.tex` via `scripts/compile_latex.py`. Do not hand-author LaTeX.
 6. Compile with `pdflatex` / `xelatex` (or tectonic) to generate `[company]_[position]_resume.pdf`.
 ```
 
 ### Stage C: Automatic Checklist & Status Update
 
-Upon successful generation of the PDF:
-1. Update `applications/[company]_[position]/checklist.md`:
-   - `status`: changes from `DRAFT` to `READY_TO_APPLY`.
-   - Record `resume_markdown`: `[company]_[position]_resume_content.md`.
-   - Record `resume_pdf`: `[company]_[position]_resume.pdf`.
-   - Check off `- [x] Generate tailored resume PDF`.
-   - Add next action item: `- [ ] Submit application on company portal (Target Date: [Today])`.
+On a passing PDF, set the tracker Status to `IN_REVIEW` and link the JD, content, and PDF. Set `READY_TO_APPLY` only after the user approves that APP-ID. Checklist edits happen in section 3 of `APPLICATIONS_TRACKER.md`.
 
 ---
 

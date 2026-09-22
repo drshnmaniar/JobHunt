@@ -1,60 +1,63 @@
-import os
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Required headings. Order is taken from the resume template, not hardcoded:
+# a student-first resume may legally put Experience before Technical Skills.
+REQUIRED_SECTIONS = ("summary", "experience", "education")
 
-def verify_ats(pdf_path):
+
+def fail(message):
+    print(f"ERROR: {message}")
+    sys.exit(1)
+
+
+def verify_ats(pdf_path, profile_path=None):
     try:
         import pypdf
     except ImportError:
-        print("Warning: pypdf is not installed. Run `pip install pypdf` for full ATS verification.")
-        print("VERIFICATION PASSED (Skipped extraction check due to missing pypdf)")
-        return
+        fail("pypdf is not installed. Run `pip install pypdf` and re-run. Verification was not performed.")
+
+    profile_path = Path(profile_path) if profile_path else ROOT / "candidate_profile.md"
+    expected_email = None
+    if profile_path.is_file():
+        match = re.search(r"\*\*Email\*\*:\s*(\S+)", profile_path.read_text(encoding="utf-8"))
+        if match:
+            expected_email = match.group(1).strip()
 
     try:
         reader = pypdf.PdfReader(pdf_path)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
-
-        if len(text.strip()) < 100:
-            print("ERROR: Extracted text is too short. PDF may be rasterized or using non-standard fonts.")
-            sys.exit(1)
-
-        # 1. Check Selectable Text
-        # Keep CLI output ASCII-only so verification works with Windows
-        # code pages that cannot encode Unicode check marks.
-        print("[OK] Selectable text confirmed.")
-
-        # 2. Check Intact Contact Details (Basic Regex)
-        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-        has_email = bool(re.search(email_pattern, text))
-
-        if not has_email:
-            print("ERROR: Could not extract email address. Formatting may be broken.")
-            sys.exit(1)
-
-        print("[OK] Contact details extracted successfully.")
-
-        # 3. Check Core Sections
-        has_experience = "experience" in text.lower() or "employment" in text.lower()
-
-        if not has_experience:
-            print("ERROR: Could not find 'Experience' section.")
-            sys.exit(1)
-
-        print("[OK] Core sections detected in text flow.")
-        print("\nVERIFICATION PASSED")
-
     except FileNotFoundError:
-        print(f"ERROR: PDF file not found at {pdf_path}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"ERROR during verification: {str(e)}")
-        sys.exit(1)
+        fail(f"PDF file not found at {pdf_path}")
+    except Exception as exc:
+        fail(f"could not read PDF: {exc}")
+
+    if len(reader.pages) != 1:
+        fail(f"expected exactly 1 page, found {len(reader.pages)}.")
+
+    text = "\n".join((page.extract_text() or "") for page in reader.pages)
+    if len(text.strip()) < 100:
+        fail("extracted text is too short. PDF may be rasterized or using non-standard fonts.")
+
+    print("[OK] Selectable text confirmed.")
+    print("[OK] Page count is 1.")
+
+    email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+    emails = re.findall(email_pattern, text)
+    if not emails:
+        fail("could not extract an email address.")
+    if expected_email and expected_email.lower() not in {item.lower() for item in emails}:
+        fail(f"extracted email does not match candidate profile ({expected_email}).")
+    print("[OK] Contact email extracted and matches the profile.")
+
+    lowered = text.lower()
+    for marker in REQUIRED_SECTIONS:
+        if marker not in lowered:
+            fail(f"could not find section '{marker}'.")
+    print("[OK] Required sections detected (summary, experience, education).")
+    print("\nVERIFICATION PASSED")
 
 
 def discover_pdfs(root: Path):

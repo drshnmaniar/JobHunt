@@ -71,9 +71,14 @@ def main() -> None:
     }
 
     result = TypeSafeClient().system_one(state=state, questions=questions)
-    print(f"Fit score: {result.scores['fit_score'].score}")
-    print(f"Fit level: {result.choices['fit_level'].choice}")
-    print(f"Critical gap probability: {result.nouls['critical_gap'].noul:.2f}")
+    fit_level = result.choices["fit_level"].choice
+    gap = result.nouls["critical_gap"].noul
+    print(f"Fit score: {result.scores['fit_score'].score} (advisory only; do not treat as a match percentage)")
+    print(f"Fit level: {fit_level}")
+    print(f"Critical gap probability: {gap:.2f}")
+    print("Triage: this script does not decide location, work authorization, or seniority. Those remain a human check.")
+    if fit_level == "stretch" or gap >= 0.5:
+        print("Recommendation: REVIEW — do not mark READY_TO_APPLY until the gaps are bridged from the profile or the role is declined.")
 
 
 if __name__ == "__main__":

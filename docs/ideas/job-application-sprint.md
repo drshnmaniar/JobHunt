@@ -32,8 +32,8 @@ The workflow must include an explicit human approval step before an application 
 ## Not Doing (and Why)
 
 - JD scraping — dynamic pages, access restrictions, and expired postings add fragility; pasted text is enough to validate the core workflow.
-- Match percentages — they imply false precision and can encourage keyword stuffing.
-- Batch multi-agent processing — optimize one application reliably before optimizing throughput.
+- Match percentages as a decision — `scripts/assess_fit.py` may print an advisory score, but the runbook must not treat it as a go/no-go percentage or a reason to keyword-stuff.
+- Unapproved batch submission — Option 8 may tailor pending JDs, but every packet stays `IN_REVIEW` until that APP-ID is explicitly approved.
 - Kanban UI and analytics — local Markdown tracking is sufficient for the first user.
 - Autonomous submission or status transitions — consequential actions require human confirmation.
 - Multiple PDF renderers — choose and validate one renderer before adding alternatives.
@@ -42,6 +42,6 @@ The workflow must include an explicit human approval step before an application 
 
 ## Open Questions
 
-- Which single PDF generation path is most reliable in the local environment?
-- What canonical statuses best represent draft, review, ready, submitted, interviewing, offer, and closed?
+- PDF path is `scripts/compile_latex.py` plus `pdflatex`. Do not add a second renderer unless this one fails a real packet.
+- Canonical statuses live in `ORCHESTRATOR.md`: `TRIAGE`, `REJECTED_AT_TRIAGE`, `DRAFT`, `IN_REVIEW`, `READY_TO_APPLY`, `APPLIED`, `SCREENING`, `INTERVIEWING`, `OFFER`, `ACCEPTED`, `REJECTED`.
 - What review format lets the user approve a tailored application in under two minutes?
