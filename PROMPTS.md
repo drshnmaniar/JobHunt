@@ -67,13 +67,15 @@ A modular library of prompts for running each stage of the job application flow 
 - `job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[position]_jd.md`
 
 **Actions**:
-1. Perform a comparative audit across 3 dimensions:
+1. Run `python scripts/assess_fit.py job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[position]_jd.md` to get the Fit Score, Fit Level, and Critical Gap probability.
+2. Perform a comparative audit across 3 dimensions:
    - **Direct Hard Skill Matches**: Skills, languages, tools, and scale metrics that match 1-to-1 between candidate and JD.
    - **Skill Gaps & Weaknesses**: Requirements in the JD where the candidate has no direct professional experience.
    - **Transferable Alignment Angles**: For every gap identified, locate adjacent experiences, foundational principles, or personal projects from the candidate profile that prove capability (e.g., Kafka gap answered by RabbitMQ/Redis Streams + Raft consensus).
-2. Assess the role's employment type and seniority against the candidate's factual history. Recommend one of: student-first, experienced individual contributor, senior individual contributor, or no-go. Never recommend altering dates, titles, or total experience to fit a level.
-3. Compute an estimated **Match Score** (0 - 100%) based on must-haves vs. nice-to-haves.
-4. Output a concise strategic briefing including:
+3. Assess the role's employment type and seniority against the candidate's factual history. Recommend one of: student-first, experienced individual contributor, senior individual contributor, or no-go. Never recommend altering dates, titles, or total experience to fit a level.
+4. Use the output from the fit assessment script (Fit Score, Fit Level, Critical gap) to inform the estimated **Match Score** (0 - 100%) based on must-haves vs. nice-to-haves.
+5. Output a concise strategic briefing including:
+   - The Fit Score, Fit Level, and Critical Gap probability from the assessment.
    - Top 3 career achievements to highlight.
    - Which bullet points to prioritize.
    - For every skill gap identified, you MUST output a 1-sentence bridging strategy using the syntax: `Gap: [Skill] -> Bridge: [Transferable skill from candidate_profile.md]`.
@@ -96,12 +98,13 @@ A modular library of prompts for running each stage of the job application flow 
 **Tailoring Guidelines**:
 1. **Never Hallucinate**: Only use factual career history, metrics, and technologies documented in `candidate_profile.md`.
 2. **Keyword Optimization**: Naturally incorporate top keywords from the JD into the professional summary and achievement bullets.
-3. **XYZ Impact Phrasing**: Structure every bullet point using Google's XYZ formula: *Accomplished [X] as measured by [Y] by doing [Z]*.
-4. **Career-Level Positioning**:
+3. **Fit Assessment & Gap Bridging**: Run `python scripts/assess_fit.py job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[position]_jd.md`. If the output indicates a "stretch" fit or a high critical gap probability, actively bridge these gaps in your tailoring by emphasizing transferable skills and adjacent experiences.
+4. **XYZ Impact Phrasing**: Structure every bullet point using Google's XYZ formula: *Accomplished [X] as measured by [Y] by doing [Z]*.
+5. **Career-Level Positioning**:
    - For working-student roles, lead with current enrollment and availability rather than total years of experience or seniority. Preserve accurate titles and dates, but compress older and less-relevant roles instead of hiding them. When the profile supports it, explain the deliberate reason for seeking part-time student work.
    - For full-time engineering roles, keep the complete factual history and position the candidate as an experienced, hands-on individual contributor. Use experience to prove delivery, but avoid leadership or architecture framing unless the JD requires it. Do not label the candidate entry-level or reduce dates or titles to fit a lower band.
    - Describe completed roles in past tense. Do not invent motivation, work authorization, relocation plans, or long-term commitments.
-5. **Strict Single-Page Budget**:
+6. **Strict Single-Page Budget**:
    - Professional Summary: 2-3 sentences focused on role pain points.
    - Technical Skills: 4 organized categories.
    - Work Experience: Top 2-3 most relevant roles with 3-5 high-impact bullets each.
@@ -221,8 +224,9 @@ A modular library of prompts for running each stage of the job application flow 
 
 Executes the following options sequentially:
 1. **Option 1**: Ingest JD & Triage -> `job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[position]_jd.md`.
-2. **Option 3**: Tailor Resume -> `resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume_content.md`.
-3. **Option 4**: Typeset, Compile LaTeX, and Verify ATS -> `output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume.pdf`.
+2. **Fit Assessment**: Run `python scripts/assess_fit.py job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[position]_jd.md` to get Fit Score and Critical Gap probability.
+3. **Option 3**: Tailor Resume (incorporating fit assessment output) -> `resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume_content.md`.
+4. **Option 4**: Typeset, Compile LaTeX, and Verify ATS -> `output_pdfs/yyyy_mm_dd_APP-[ID]_[company]_[position]_resume.pdf`.
 4. **Option 6**: Sync Global Tracker -> Sets Stage to `Applying`, Status to `Action Required` in `APPLICATIONS_TRACKER.md`.
 5. Present final summary with links to all generated assets and next immediate action.
 ```
@@ -260,6 +264,7 @@ Executes the following options sequentially:
    > `candidate_profile.md` + `job_descriptions/yyyy_mm_dd_APP-[ID]_[current_jd].md`.
 
    - **Step 2A (Tailor Content - via Sub-Agent)**:
+     - Run `python scripts/assess_fit.py` against the JD and use the fit score to adapt the resume narrative.
      - Sub-agent maps achievements to `[ACH-ID]` for this specific JD.
      - Save to: `resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[role]_resume_content.md`.
    

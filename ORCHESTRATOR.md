@@ -23,13 +23,15 @@ This document defines how to run the automated job application flow.
      - Add new entry to APPLICATIONS_TRACKER.md (Status: DRAFT)
                  │
                  ▼
-     [ PHASE 1.5: ELIGIBILITY TRIAGE ]
+     [ PHASE 1.5: ELIGIBILITY TRIAGE & FIT ASSESSMENT ]
      - Run Triage Check (Location, Auth, Seniority)
+     - Run python scripts/assess_fit.py against the JD to get Fit Score, Fit Level, and Critical Gap probability
      - Halt if mismatch found, mark REJECTED_AT_TRIAGE
                  │
                  ▼
      [ PHASE 2: TRACEABLE TAILORING ]
      - Read candidate_profile.md + job_descriptions/yyyy_mm_dd_APP-[ID]_[company]_[role]_jd.md
+     - Incorporate the Fit Assessment output to adapt the narrative (e.g., bridge critical gaps using transferable skills)
      - Extract direct hard skill matches & metrics
      - Map every generated bullet to a source [ACH-ID]
      - Write to: resume_contents/yyyy_mm_dd_APP-[ID]_[company]_[role]_resume_content.md

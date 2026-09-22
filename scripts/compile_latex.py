@@ -57,6 +57,7 @@ def convert_md_letter(md_content):
 
     Expected structure (see PROMPTS.md Option 5):
       # Cover Letter: ... (skipped, not rendered)
+      ## Contact Header   (skipped, not rendered)
       **Name**            -> centered header
       contact line        -> centered contact + date below
       **Subject:** ...    -> bold subject paragraph
@@ -68,6 +69,7 @@ def convert_md_letter(md_content):
     latex_lines = []
     h1_skipped = False
     header_state = 'want_name'  # want_name -> want_contact -> body
+    in_closing = False
 
     for line in lines:
         stripped = line.strip()
@@ -79,9 +81,14 @@ def convert_md_letter(md_content):
         if not h1_skipped:
             continue
 
+        # Skip any ## section headings (e.g. "## Contact Header") — metadata only
+        if stripped.startswith('## '):
+            continue
+
         # Blank markdown lines become real paragraph breaks (no more wall of text)
         if not stripped:
-            latex_lines.append('')
+            if not in_closing:
+                latex_lines.append('')
             continue
 
         # Name: first bold-only line -> centered large header
@@ -105,15 +112,22 @@ def convert_md_letter(md_content):
             header_state = 'body'
             continue
 
-        # Closing gets vertical breathing room before it, and the signature
-        # name drops to its own line
+        # Closing gets vertical breathing room before it; name follows immediately
         if stripped == 'Best regards,':
             latex_lines.append('')
             latex_lines.append('\\vspace{6pt}')
-            latex_lines.append('{\\small Best regards,\\\\}')
+            latex_lines.append('{\\small Best regards,}\\\\')
+            in_closing = True
             continue
 
-        # Everything else (subject, greeting, body, signature name): own paragraph
+        # Signature name: attach directly to "Best regards," with no gap
+        if in_closing:
+            name = process_inline_markdown(stripped)
+            latex_lines.append(f"{{\\small {name}}}")
+            in_closing = False
+            continue
+
+        # Everything else (subject, greeting, body): own paragraph
         latex_lines.append(f"{{\\small {process_inline_markdown(stripped)}}}")
         latex_lines.append('')
 
@@ -131,6 +145,7 @@ def convert_md_resume(md_content):
     in_contact_header = False
     contact_name_done = False
     last_was_para = False
+    blocks_in_section = 0  # counts ### headings per section
 
     def close_list():
         nonlocal in_list, last_was_para
@@ -142,7 +157,11 @@ def convert_md_resume(md_content):
     def open_list():
         nonlocal in_list
         if not in_list:
-            latex_lines.append('\\begin{itemize}[leftmargin=0.15in,topsep=2pt,itemsep=2pt,parsep=0pt]')
+            while latex_lines and latex_lines[-1] == '':
+                latex_lines.pop()
+            if latex_lines and latex_lines[-1].endswith('\\\\'):
+                latex_lines[-1] = latex_lines[-1][:-2]
+            latex_lines.append('\\begin{itemize}[leftmargin=0.15in,topsep=0pt,itemsep=4pt,parsep=0pt]')
             in_list = True
 
     for line in lines:
@@ -170,11 +189,14 @@ def convert_md_resume(md_content):
             close_list()
             title = stripped[3:].strip()
             seen_section = True
+            blocks_in_section = 0  # reset block counter for each new section
             if title.lower() == 'contact header':
                 in_contact_header = True
                 contact_name_done = False
                 continue
             in_contact_header = False
+            # Keep section heading + at least 5 lines of content together
+            latex_lines.append('\\needspace{5\\baselineskip}')
             latex_lines.append(f"\\section{{{process_inline_markdown(title)}}}")
             continue
 
@@ -206,16 +228,24 @@ def convert_md_resume(md_content):
             latex_lines.append(f"{{\\small {process_inline_markdown(stripped)}}}")
             continue
 
-        # ### Role / project headings -> compact bold line (saves vertical space)
+        # ### Role / project headings -> compact bold line with inter-block spacing
         if stripped.startswith('### '):
             close_list()
+            # Strip trailing blank lines so vspace sits flush
+            while latex_lines and latex_lines[-1] == '':
+                latex_lines.pop()
+            if blocks_in_section > 0:
+                latex_lines.append('\\vspace{8pt}')
+            # Keep block heading + at least 4 lines of content together
+            latex_lines.append('\\needspace{4\\baselineskip}')
+            blocks_in_section += 1
             latex_lines.append(f"\\noindent\\textbf{{{process_inline_markdown(stripped[4:].strip())}}}\\\\")
             continue
 
         # Italic date lines like *Dec 2022 – Mar 2025 | ...* -> small italic
         if stripped.startswith('*') and stripped.endswith('*') and len(stripped) > 2:
             close_list()
-            latex_lines.append(f"{{\\small\\textit{{{process_inline_markdown(stripped.strip('*').strip())}}}}}\\\\[-2pt]")
+            latex_lines.append(f"{{\\small\\textit{{{process_inline_markdown(stripped.strip('*').strip())}}}}}\\\\")
             continue
 
         # Headers (fallback)
@@ -245,74 +275,109 @@ def convert_md_resume(md_content):
     close_list()
     return '\n'.join(latex_lines)
 
-def main():
-    parser = argparse.ArgumentParser(description="Compile Markdown to LaTeX PDF")
-    parser.add_argument('--content', required=True, help="Path to markdown content file")
-    parser.add_argument('--template', required=True, help="Path to LaTeX template")
-    parser.add_argument('--output', required=True, help="Path to output PDF")
-    parser.add_argument('--doctype', default='auto', choices=('auto', 'resume', 'letter'),
-                        help="Document type: auto-detects letter vs resume from the H1")
-    args = parser.parse_args()
-    
+def discover_content_files(root: str):
+    """Return sorted list of .md files under resume_contents/."""
+    content_dir = os.path.join(root, 'resume_contents')
+    if not os.path.isdir(content_dir):
+        return []
+    files = sorted(
+        f for f in os.listdir(content_dir)
+        if f.endswith('.md') and not f.startswith('.')
+    )
+    return [os.path.join(content_dir, f) for f in files]
+
+
+def auto_resolve(content_path: str, root: str):
+    """Derive template, output path and doctype from the content filename."""
+    basename = os.path.basename(content_path)
+    name_no_ext = os.path.splitext(basename)[0]
+
+    is_letter = 'cover_letter' in name_no_ext
+    doctype   = 'letter' if is_letter else 'resume'
+
+    template_name = 'cover_letter.tex' if is_letter else 'modern_ats_resume.tex'
+    template      = os.path.join(root, 'templates', template_name)
+
+    # Output PDF keeps the same stem as the content file
+    output = os.path.join(root, 'output_pdfs', name_no_ext + '.pdf')
+    return template, output, doctype
+
+
+def interactive_pick(files):
+    """Print a numbered menu and return the chosen file path."""
+    print('\nAvailable content files:')
+    for i, f in enumerate(files, 1):
+        print(f'  {i:2}. {os.path.basename(f)}')
+    print()
+    while True:
+        raw = input('Pick a number (or q to quit): ').strip()
+        if raw.lower() == 'q':
+            raise SystemExit('Aborted.')
+        if raw.isdigit() and 1 <= int(raw) <= len(files):
+            return files[int(raw) - 1]
+        print(f'  Please enter a number between 1 and {len(files)}.')
+
+
+def compile_file(content, template, output, doctype):
+    """Core compile logic shared between CLI and interactive modes."""
     # 1. Read Markdown
     try:
-        with open(args.content, 'r', encoding='utf-8') as f:
+        with open(content, 'r', encoding='utf-8') as f:
             md_content = f.read()
     except FileNotFoundError:
-        print(f"Error: Content file not found at {args.content}")
+        print(f'Error: Content file not found at {content}')
         sys.exit(1)
-        
+
     # 2. Convert to LaTeX snippet
-    latex_body = convert_md_to_latex(md_content, doctype=args.doctype)
-    
+    latex_body = convert_md_to_latex(md_content, doctype=doctype)
+
     # 3. Read Template
     try:
-        with open(args.template, 'r', encoding='utf-8') as f:
+        with open(template, 'r', encoding='utf-8') as f:
             template_content = f.read()
     except FileNotFoundError:
-        print(f"Error: Template file not found at {args.template}")
+        print(f'Error: Template file not found at {template}')
         sys.exit(1)
-        
+
     # 4. Inject Body
-    # Try different common placeholders
     if '{{CONTENT}}' in template_content:
         final_tex = template_content.replace('{{CONTENT}}', latex_body)
     elif '% CONTENT_GOES_HERE' in template_content:
         final_tex = template_content.replace('% CONTENT_GOES_HERE', latex_body)
     else:
-        # Fallback: Just insert before \end{document}
         final_tex = template_content.replace('\\end{document}', latex_body + '\n\\end{document}')
-        
+
     # 5. Write to .tex file
-    output_dir = os.path.dirname(args.output)
+    output_dir = os.path.dirname(output)
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-        
-    tex_file = args.output.replace('.pdf', '.tex')
+
+    tex_file = output.replace('.pdf', '.tex')
     with open(tex_file, 'w', encoding='utf-8') as f:
         f.write(final_tex)
-        
+
     # 6. Compile PDF
-    print(f"Compiling {tex_file} to PDF...")
+    print(f'Compiling {tex_file} ...')
     try:
-        result = subprocess.run(
-            ['pdflatex', '-halt-on-error', '-disable-installer', f'-output-directory={output_dir}', tex_file],
+        subprocess.run(
+            ['pdflatex', '-halt-on-error', '-disable-installer',
+             f'-output-directory={output_dir}', tex_file],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
         )
-        print("Compilation successful.")
+        print(f'Done  ->  {output}')
     except subprocess.CalledProcessError as e:
-        print("Error during pdflatex compilation:")
+        print('Error during pdflatex compilation:')
         print(e.stdout)
         print(e.stderr)
         sys.exit(1)
     except FileNotFoundError:
-        print("Error: pdflatex command not found. Ensure MiKTeX or TeX Live is installed and in PATH.")
+        print('Error: pdflatex not found. Ensure MiKTeX or TeX Live is installed and in PATH.')
         sys.exit(1)
 
-    # 7. Clean up LaTeX sidecar files (keep only .tex + .pdf)
+    # 7. Clean up sidecar files
     cleanup_extensions = ('.aux', '.log', '.out', '.toc', '.synctex.gz', '.fls', '.fdb_latexmk')
     tex_basename = os.path.splitext(tex_file)[0]
     for ext in cleanup_extensions:
@@ -320,9 +385,66 @@ def main():
         try:
             if os.path.isfile(sidecar):
                 os.remove(sidecar)
-                print(f"Removed {sidecar}")
         except OSError as e:
-            print(f"Warning: could not remove {sidecar}: {e}")
+            print(f'Warning: could not remove {sidecar}: {e}')
 
-if __name__ == "__main__":
+
+def main():
+    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    parser = argparse.ArgumentParser(
+        description='Compile Markdown resume/cover-letter to PDF.\n'
+                    'Run with no arguments for interactive file picker.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument('--content',  help='Path to markdown content file')
+    parser.add_argument('--template', help='Path to LaTeX template (auto-detected if omitted)')
+    parser.add_argument('--output',   help='Path to output PDF (auto-detected if omitted)')
+    parser.add_argument('--doctype',  default='auto', choices=('auto', 'resume', 'letter'),
+                        help='Document type (default: auto-detect from filename/H1)')
+    parser.add_argument('--all', action='store_true',
+                        help='Compile every file in resume_contents/ non-interactively')
+    args = parser.parse_args()
+
+    # --- compile everything ---
+    if args.all:
+        files = discover_content_files(ROOT)
+        if not files:
+            raise SystemExit('No .md files found in resume_contents/.')
+        for f in files:
+            tmpl, out, dt = auto_resolve(f, ROOT)
+            print(f'\n=== {os.path.basename(f)} ===')
+            compile_file(f, tmpl, out, dt)
+        return
+
+    # --- explicit CLI args provided ---
+    if args.content:
+        template = args.template
+        output   = args.output
+        doctype  = args.doctype
+        if not template or not output:
+            tmpl_auto, out_auto, dt_auto = auto_resolve(args.content, ROOT)
+            template = template or tmpl_auto
+            output   = output   or out_auto
+            if doctype == 'auto':
+                doctype = dt_auto
+        compile_file(args.content, template, output, doctype)
+        return
+
+    # --- interactive picker ---
+    files = discover_content_files(ROOT)
+    if not files:
+        raise SystemExit('No .md files found in resume_contents/.')
+    chosen = interactive_pick(files)
+    template, output, doctype = auto_resolve(chosen, ROOT)
+    if args.doctype != 'auto':
+        doctype = args.doctype
+    print(f'  Content : {chosen}')
+    print(f'  Template: {template}')
+    print(f'  Output  : {output}')
+    print(f'  Doctype : {doctype}')
+    compile_file(chosen, template, output, doctype)
+
+
+if __name__ == '__main__':
     main()

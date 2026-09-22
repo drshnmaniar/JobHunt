@@ -3,7 +3,7 @@
 % Single-Column, Clean Typography, Zero Parse Clutter
 %-------------------------
 
-\documentclass[letterpaper,10pt]{article}
+\documentclass[a4paper,12pt]{article}
 
 \usepackage{titlesec}
 \usepackage{xcolor}
@@ -11,7 +11,8 @@
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{tabularx}
-\usepackage[margin=0.55in]{geometry}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{needspace}
 
 % Searchable, ATS-faithful text extraction (fixes ligature splits like "F rameworks"
 % and maps glyphs like bullets to proper Unicode codepoints)
@@ -40,8 +41,8 @@
 % Times has no true small-caps and the fallback corrupts text extraction)
 \setcounter{secnumdepth}{0}
 \titleformat{\section}{
-  \vspace{-4pt}\raggedright\large\bfseries
-}{}{0em}{}[\color{black}\titlerule \vspace{-2pt}]
+  \vspace{2pt}\raggedright\normalsize\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{2pt}]
 \titlespacing*{\section}{0pt}{8pt}{5pt}
 
 % Custom commands
